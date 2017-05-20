@@ -1,0 +1,18 @@
+{
+  "name": "morto",
+  "description": "MOnoRepoTOols",
+  "author": "Jan Paul Posma <j@npaulpos.ma>",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "colors": "^1.1.2",
+    "command-line-args": "^4.0.2",
+    "command-line-commands": "^2.0.0",
+    "junit-merge": "^1.1.0",
+    "sync-request": "^4.0.1"
+  },
+  "bin": {
+    "morto": "bin/morto"
+  }
+}
