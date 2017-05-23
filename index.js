@@ -20,7 +20,7 @@ function exec(command, cwd) {
   const startTime = new Date();
   log(`[exec] running "${command}" in "/${cwd || ''}"...`);
   try {
-    execSync(command, { cwd, stdio: 'inherit' });
+    execSync(command, { cwd, stdio: 'inherit', stderr: 'inherit' });
     log(`[exec] finished "${command}" in ${((new Date() - startTime) / 1000).toFixed(2)}s...`);
   } catch (_) {
     log(`[exec] ${colors.red('ERROR')} in "${command}" after ${((new Date() - startTime) / 1000).toFixed(2)}s...`);
@@ -31,10 +31,10 @@ function copy(object) {
   return JSON.parse(JSON.stringify(object));
 }
 
-const { command, argv } = commandLineCommands([null, 'install', 'test']);
+const { command, argv } = commandLineCommands([null, 'setup', 'test']);
 
 if (command === null) {
-  console.log('Valid options are: "install", "test".');
+  console.log('Valid options are: "setup", "test".');
   process.exit(1);
 }
 
@@ -118,28 +118,28 @@ let projects = {};
   }
 }
 
-// If the command is `install`, just run project.installCommands and then bail.
+// If the command is `setup`, just run project.setupCommands and then bail.
 {
-  if (command === 'install') {
-    log('Running installation...');
+  if (command === 'setup') {
+    log('Running setup...');
 
     Object.keys(projects).forEach((projectName) => {
       const project = projects[projectName];
-      const installCommands = project.installCommands || {};
+      const setupCommands = project.setupCommands || {};
 
-      const installType = options.ci ? 'ci' : 'osx';
-      const commands = (installCommands.common || [])
-        .concat(installCommands[installType] || []);
+      const setupType = options.ci ? 'ci' : 'osx';
+      const commands = (setupCommands.common || [])
+        .concat(setupCommands[setupType] || []);
 
-      commands.forEach((installCommand, index) => {
-        log(`[${projectName}] Running installCommand ${index}...`);
-        exec(installCommand, project.subDirectory);
+      commands.forEach((setupCommand, index) => {
+        log(`[${projectName}] Running setupCommand ${index}...`);
+        exec(setupCommand, project.subDirectory);
         if (exitCode !== 0) process.exit(exitCode);
       });
     });
     process.exit(exitCode);
   } else {
-    log('Skipping installation...');
+    log('Skipping setup...');
   }
 }
 

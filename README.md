@@ -4,7 +4,7 @@ Morto is a set of tools to help with managing a [monorepo](https://danluu.com/mo
 
 It currently does these things:
 
-1. Set up a development environment: `morto install`.
+1. Set up a development environment: `morto setup`.
 2. Run tests with the right test runner: `morto test <filename>`.
 3. Do these things in CI, where it can automatically figure out which projects (subdirectories) have changed.
 
@@ -22,7 +22,7 @@ module.exports = {
   projects: {
     topLevelSetup: {
       alwaysRun: true,
-      installCommands: {
+      setupCommands: {
         common: [
           '(which ruby && which gem) || echo "Please make sure ruby/gem are installed"',
           '(which node && which yarn) || echo "Please make sure node/yarn are installed"',
@@ -33,6 +33,7 @@ module.exports = {
           'bundle install',
           'overcommit --install',
           'overcommit --sign',
+          'yarn install --pure-lockfile', // Update Yarn dependencies in OSX so you can just run `yarn run morto -- setup`.
         ],
         ci: [
           'sudo apt-get update',
@@ -49,7 +50,7 @@ module.exports = {
     },
     core: {
       subDirectory: 'core',
-      installCommands: {
+      setupCommands: {
         common: [
           '(which psql && which createdb) || echo "Please make sure PostgreSQL is installed"',
           'which redis-cli || echo "Please make sure Redis is installed (but not running)"',
@@ -71,7 +72,7 @@ module.exports = {
     },
     keystone: {
       subDirectory: 'keystone',
-      installCommands: {
+      setupCommands: {
         common: [
           'test -e .env || cp .env.sample .env',
           'virtualenv venv',
@@ -94,8 +95,8 @@ module.exports = {
 
 We should add more documentation at some point, but at least this should give you a rough idea of what is possible.
 
-- Each project can either have a `subDirectory` (in which case it will only install/test that project in CI if files in that directory have changed) or `alwaysRun`.
-- Each project needs to have a number of `installCommands`, split between `common` (run regardless of platform), `osx` (run only when you don't use the `--ci` flag) or `ci` (run only when you use the `--ci` flag).
+- Each project can either have a `subDirectory` (in which case it will only setup/test that project in CI if files in that directory have changed) or `alwaysRun`.
+- Each project needs to have a number of `setupCommands`, split between `common` (run regardless of platform), `osx` (run only when you don't use the `--ci` flag) or `ci` (run only when you use the `--ci` flag).
 - A project can either have `testRunners` (simply runs the commands) or `fileTestRunner` (will use this command when passing in a file, e.g. `morto test core/file_spec.rb` would run something like `cd core && bundle exec rspec file_spec.rb`).
 - You can specify a `junitOutput`, which we will collect in one output if you use the `--junitOutput` flag.
 
@@ -113,7 +114,7 @@ dependencies:
   override:
     - yarn config set cache-folder ~/.yarn-cache
     - yarn install --pure-lockfile
-    - yarn run morto -- install --ci
+    - yarn run morto -- setup --ci
 database:
   override: []
 test:
@@ -130,5 +131,6 @@ test:
 - Support more platforms than just `osx` and `ci`.
 - Support more CI environments than CircleCI+Github.
 - Support explicit dependencies between projects.
+- Better test-balancing (don't rely on CircleCI for this).
 - Better docs!
 - Add linters and tests to this repo.
