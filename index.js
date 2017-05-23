@@ -58,7 +58,7 @@ const config = require(path.join(process.cwd(), '.morto.js'));
 // 3. Otherwise, we run all projects.
 let projects = {};
 {
-  if (options.onlyProject.length !== 0) {
+  if (options.onlyProject && options.onlyProject.length > 0) {
     // Iterate over config.projects to guarantee order.
     Object.keys(config.projects).forEach((projectName) => {
       if (options.onlyProject.includes(projectName)) {

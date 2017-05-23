@@ -29,12 +29,12 @@ command-exists@^1.2.2:
   resolved "https://registry.yarnpkg.com/command-exists/-/command-exists-1.2.2.tgz#12819c64faf95446ec0ae07fe6cafb6eb3708b22"
 
 command-line-args@^4.0.2:
-  version "4.0.4"
-  resolved "https://registry.yarnpkg.com/command-line-args/-/command-line-args-4.0.4.tgz#6b9ab497cfe82d2c1ce1e47d6c18a85382f5d9fe"
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/command-line-args/-/command-line-args-4.0.5.tgz#c7beccd6641f525ed6f292e17084ab3231b301be"
   dependencies:
     array-back "^1.0.4"
     find-replace "^1.0.3"
-    typical "^2.6.0"
+    typical "^2.6.1"
 
 command-line-commands@^2.0.0:
   version "2.0.0"
@@ -174,7 +174,7 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 
-typical@^2.6.0:
+typical@^2.6.0, typical@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/typical/-/typical-2.6.1.tgz#5c080e5d661cbbe38259d2e70a3c7253e873881d"
 
