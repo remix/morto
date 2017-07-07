@@ -5,8 +5,9 @@ Morto is a set of tools to help with managing a [monorepo](https://danluu.com/mo
 It currently does these things:
 
 1. Set up a development environment: `morto setup`.
-2. Run tests with the right test runner: `morto test <filename>`.
-3. Do these things in CI, where it can automatically figure out which projects (subdirectories) have changed.
+1. Run tests with the right test runner: `morto test <filename>`.
+1. Build and distribute projects to staging environments: `morto distribute`.
+1. Do these things in CI, where it can automatically figure out which projects (subdirectories) have changed.
 
 
 ## Setup
@@ -40,6 +41,9 @@ module.exports = {
           'bundle check --path=~/.bundle || bundle install --deployment --path=~/.bundle',
         ],
       },
+      distributeCommands: {
+        common: [],
+      },
     },
     linters: {
       alwaysRun: true,
@@ -67,6 +71,14 @@ module.exports = {
           'RAILS_ENV="test" RACK_ENV="test" bundle exec rake db:create db:structure:load --trace',
         ],
       },
+      distributeCommands: {
+        ci: [
+          'git push -f git@heroku.com:staging-remix-core.git $CIRCLE_SHA1:refs/heads/master',
+          'heroku run --exit-code rake db:migrate --app staging-remix-core',
+          'heroku restart --app staging-remix-core',
+          'heroku config:set RELEASE_NUMBER=$((`heroku config:get RELEASE_NUMBER -a staging-remix-core` + 1)) -a staging-remix-core',
+        ],
+      },
       fileTestRunner: 'bundle exec rspec --format progress --format RspecJunitFormatter --out junit.xml',
       junitOutput: 'junit.xml',
     },
@@ -83,6 +95,11 @@ module.exports = {
         ],
         ci: [
           'venv/bin/pip install --upgrade -r requirements.txt -q --log $CIRCLE_ARTIFACTS/pip-keystone.log',
+        ],
+      },
+      distributeCommands: {
+        common: [
+          'make deploy-stage',
         ],
       },
       testRunners: [
@@ -124,6 +141,11 @@ test:
         parallel: true
         files:
           - core/spec/**/*_spec.rb
+deployment:
+  staging:
+    branch: master
+    commands:
+      - yarn run morto -- distribute --ci
 ```
 
 
