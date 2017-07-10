@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 const commandLineArgs = require('command-line-args');
 const commandLineCommands = require('command-line-commands');
-const jmerge = require('junit-merge/lib');
 const path = require('path');
 const syncRequest = require('sync-request');
 const { execSync } = require('child_process');
-const { existsSync, writeFileSync } = require('fs');
 
 const commands = require('./commands');
 const { log, exec, copy } = require('./lib.js');

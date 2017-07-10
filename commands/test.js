@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+const jmerge = require('junit-merge/lib');
+const path = require('path');
+const { existsSync, writeFileSync } = require('fs');
 const { log, exec } = require('../lib.js');
 
 function test(projects, options, config) {
