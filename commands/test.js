@@ -106,8 +106,7 @@ function test(projects, options, config) {
       }
     });
 
-    if (exec(`mkdir -p ${path.dirname(options.junitOutput)}`) !== 0) throw new Error("Failed to create JUnit output dir.");
-
+    exec(`mkdir -p ${path.dirname(options.junitOutput)}`);
     const merged = `<?xml version="1.0"?>\n<testsuites>\n${junitTestSuites.join('\n')}</testsuites>\n`;
     writeFileSync(options.junitOutput, merged);
     log(`Written to ${options.junitOutput}...`);
