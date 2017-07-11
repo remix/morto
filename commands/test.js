@@ -62,8 +62,7 @@ function test(projects, options, config) {
       if (options.runTestRunners) {
         project.testRunners.forEach((testRunner, index) => {
           log(`[${projectName}] Running testRunner ${index}...`);
-          exitCode = exec(testRunner, project.subDirectory);
-          if (exitCode) throw new Error('testRunner failed');
+          exitCode = exitCode || exec(testRunner, project.subDirectory);
         });
       } else {
         log(`[${projectName}] skipping testRunners...`);
@@ -72,8 +71,7 @@ function test(projects, options, config) {
 
     if (project.fileTestRunner && files.length > 0) {
       log(`[${projectName}] Running fileTestRunner...`);
-      exitCode = exec(`${project.fileTestRunner} ${files.join(' ')}`, project.subDirectory);
-      if (exitCode) throw new Error('fileTestRunner failed');
+      exitCode = exitCode || exec(`${project.fileTestRunner} ${files.join(' ')}`, project.subDirectory);
     }
   });
 
@@ -108,11 +106,9 @@ function test(projects, options, config) {
       }
     });
 
+    if (!exec(`mkdir -p ${path.dirname(options.junitOutput)}`)) throw new Error("Failed to create JUnit output dir.");
+
     const merged = `<?xml version="1.0"?>\n<testsuites>\n${junitTestSuites.join('\n')}</testsuites>\n`;
-
-    exitCode = exec(`mkdir -p ${path.dirname(options.junitOutput)}`);
-    if (exitCode) throw new Error('failed to make junit output dir');
-
     writeFileSync(options.junitOutput, merged);
     log(`Written to ${options.junitOutput}...`);
   }
