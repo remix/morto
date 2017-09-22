@@ -34,7 +34,6 @@ module.exports = {
           'bundle install',
           'overcommit --install',
           'overcommit --sign',
-          'yarn install --pure-lockfile', // Update Yarn dependencies in OSX so you can just run `yarn run morto -- setup`.
         ],
         ci: [
           'sudo apt-get update',
@@ -131,13 +130,13 @@ dependencies:
   override:
     - yarn config set cache-folder ~/.yarn-cache
     - yarn install --pure-lockfile
-    - yarn run morto -- setup --ci
+    - node_modules/.bin/morto setup --ci
 database:
   override: []
 test:
   override:
     # Service-specific tests (only for what has changed), using CircleCI's test balancing:
-    - yarn run morto -- test --runTestRunners --junitOutput $CIRCLE_TEST_REPORTS/reports/junit.xml:
+    - node_modules/.bin/morto test --runTestRunners --junitOutput $CIRCLE_TEST_REPORTS/reports/junit.xml:
         parallel: true
         files:
           - core/spec/**/*_spec.rb
