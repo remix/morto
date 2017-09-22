@@ -98,12 +98,12 @@ let selectedProjects = {};
       Object.keys(config.projects).forEach((projectName) => {
         const project = config.projects[projectName];
         if (project.triggeredByProjects) {
-          project.triggeredByProjects.forEach((dependentProjectName) => {
-            if (!config.projects[dependentProjectName]) {
-              throw new Error(`Couldn't find project "${dependentProjectName}" that "${projectName}" depends on`);
+          project.triggeredByProjects.forEach((triggeredByProjectName) => {
+            if (!config.projects[triggeredByProjectName]) {
+              throw new Error(`Couldn't find project "${triggeredByProjectName}" that "${projectName}" depends on`);
             }
-            if (config.projects[dependentProjectName].triggeredByProjects) {
-              throw new Error(`"${projectName}" depends on "${dependentProjectName}", which itself depends on other selectedProjects, cannot do that`);
+            if (config.projects[triggeredByProjectName].triggeredByProjects) {
+              throw new Error(`"${projectName}" depends on "${triggeredByProjectName}", which itself depends on other selectedProjects, cannot do that`);
             }
           });
           projectSetupGroups.push(project.triggeredByProjects.concat([projectName]));
@@ -129,10 +129,10 @@ let selectedProjects = {};
       Object.keys(config.projects).forEach((projectName) => {
         const project = config.projects[projectName];
         if (project.triggeredByProjects) {
-          project.triggeredByProjects.forEach((dependentProjectName) => {
-            if (selectedProjects[dependentProjectName]) {
-              log(`Using project "${dependentProjectName}", so also using "${projectName}"...`);
-              selectedProjects[dependentProjectName] = config.projects[dependentProjectName];
+          project.triggeredByProjects.forEach((triggeredByProjectName) => {
+            if (selectedProjects[triggeredByProjectName]) {
+              log(`Using project "${triggeredByProjectName}", so also using "${projectName}"...`);
+              selectedProjects[triggeredByProjectName] = config.projects[triggeredByProjectName];
             }
           });
         }
