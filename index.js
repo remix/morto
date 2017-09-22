@@ -6,7 +6,7 @@ const syncRequest = require('sync-request');
 const { execSync } = require('child_process');
 
 const commands = require('./commands');
-const { log, exec, copy } = require('./lib.js');
+const { log, copy } = require('./lib.js');
 
 const { command, argv } = commandLineCommands([null, 'setup', 'test', 'distribute']);
 
