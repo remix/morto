@@ -28,6 +28,21 @@ const options = commandLineArgs([
 // Load in config.
 const config = require(path.join(process.cwd(), '.morto.js'));
 
+// Validate config.
+Object.keys(config.projects).forEach((projectName) => {
+  const project = config.projects[projectName];
+  if (project.triggeredByProjects) {
+    project.triggeredByProjects.forEach((triggeredByProjectName) => {
+      if (!config.projects[triggeredByProjectName]) {
+        throw new Error(`Couldn't find project "${triggeredByProjectName}" that "${projectName}" gets triggered by`);
+      }
+      if (config.projects[triggeredByProjectName].triggeredByProjects) {
+        throw new Error(`"${projectName}" gets triggered by "${triggeredByProjectName}", which itself is triggered by other projects, cannot do that`);
+      }
+    });
+  }
+});
+
 // Figure out which projects to run.
 // 1. --onlyProject lets you manually select projects to run (useful for debugging).
 // 2. When a PR is detected, we only run projects of which the project.subDirectory has changed,
@@ -93,12 +108,6 @@ let selectedProjects = {};
       const project = config.projects[projectName];
       if (project.triggeredByProjects) {
         project.triggeredByProjects.forEach((triggeredByProjectName) => {
-          if (!config.projects[triggeredByProjectName]) {
-            throw new Error(`Couldn't find project "${triggeredByProjectName}" that "${projectName}" gets triggered by`);
-          }
-          if (config.projects[triggeredByProjectName].triggeredByProjects) {
-            throw new Error(`"${projectName}" gets triggered by "${triggeredByProjectName}", which itself is triggered by other projects, cannot do that`);
-          }
           if (selectedProjects[triggeredByProjectName]) {
             log(`Selected project "${triggeredByProjectName}", so also selecting "${projectName}"...`);
             selectedProjects[projectName] = config.projects[projectName];
