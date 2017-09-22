@@ -93,14 +93,13 @@ let selectedProjects = {};
       const project = config.projects[projectName];
       if (project.triggeredByProjects) {
         project.triggeredByProjects.forEach((triggeredByProjectName) => {
+          if (!config.projects[triggeredByProjectName]) {
+            throw new Error(`Couldn't find project "${triggeredByProjectName}" that "${projectName}" gets triggered by`);
+          }
+          if (config.projects[triggeredByProjectName].triggeredByProjects) {
+            throw new Error(`"${projectName}" gets triggered by "${triggeredByProjectName}", which itself is triggered by other projects, cannot do that`);
+          }
           if (selectedProjects[triggeredByProjectName]) {
-            if (!config.projects[triggeredByProjectName]) {
-              throw new Error(`Couldn't find project "${triggeredByProjectName}" that "${projectName}" gets triggered by`);
-            }
-            if (config.projects[triggeredByProjectName].triggeredByProjects) {
-              throw new Error(`"${projectName}" is triggered by "${triggeredByProjectName}", which itself is triggered by other projects, cannot do that`);
-            }
-
             log(`Selected project "${triggeredByProjectName}", so also selecting "${projectName}"...`);
             selectedProjects[projectName] = config.projects[projectName];
           }
