@@ -88,58 +88,27 @@ let selectedProjects = {};
       }
     }
 
-    if (command === 'setup') {
-      // Find all projects that should be set up together.
-      // E.g. if you have "A", "B", and "A-B-integration", then if any of those
-      // three changes, then all three should be set up. If you also have a
-      // "C" and a "B-C-integration", that forms another group of three (if "C"
-      // changes then "A" does not to be set up).
-      const projectSetupGroups = [];
-      Object.keys(config.projects).forEach((projectName) => {
-        const project = config.projects[projectName];
-        if (project.triggeredByProjects) {
-          project.triggeredByProjects.forEach((triggeredByProjectName) => {
+    // If a project is selected, make sure projects that depend on it are selected.
+    Object.keys(config.projects).forEach((projectName) => {
+      const project = config.projects[projectName];
+      if (project.triggeredByProjects) {
+        project.triggeredByProjects.forEach((triggeredByProjectName) => {
+          if (selectedProjects[triggeredByProjectName]) {
             if (!config.projects[triggeredByProjectName]) {
-              throw new Error(`Couldn't find project "${triggeredByProjectName}" that "${projectName}" depends on`);
+              throw new Error(`Couldn't find project "${triggeredByProjectName}" that "${projectName}" gets triggered by`);
             }
             if (config.projects[triggeredByProjectName].triggeredByProjects) {
-              throw new Error(`"${projectName}" depends on "${triggeredByProjectName}", which itself depends on other selectedProjects, cannot do that`);
+              throw new Error(`"${projectName}" is triggered by "${triggeredByProjectName}", which itself is triggered by other projects, cannot do that`);
             }
-          });
-          projectSetupGroups.push(project.triggeredByProjects.concat([projectName]));
-        }
-      });
-      log(`All project groups for setup: ${projectSetupGroups.map((group) => group.join('+')).join(', ')}...`);
 
-      // If a project is selected, make sure its whole group is selected.
-      Object.keys(selectedProjects).forEach((projectName) => {
-        projectSetupGroups.forEach((group) => {
-          if (group.includes(projectName)) {
-            log(`Using project "${projectName}", so for setup using all of ${group.join('+')}...`);
-            group.forEach((groupProjectName) => {
-              selectedProjects[groupProjectName] = config.projects[groupProjectName];
-            });
+            log(`Selected project "${triggeredByProjectName}", so also selecting "${projectName}"...`);
+            selectedProjects[projectName] = config.projects[projectName];
           }
         });
-      });
+      }
+    });
 
-      log(`Selected projects (just for setup): ${Object.keys(selectedProjects).join(', ')}...`);
-    } else {
-      // If a project is selected, make sure projects that depend on it are selected.
-      Object.keys(config.projects).forEach((projectName) => {
-        const project = config.projects[projectName];
-        if (project.triggeredByProjects) {
-          project.triggeredByProjects.forEach((triggeredByProjectName) => {
-            if (selectedProjects[triggeredByProjectName]) {
-              log(`Using project "${triggeredByProjectName}", so also using "${projectName}"...`);
-              selectedProjects[triggeredByProjectName] = config.projects[triggeredByProjectName];
-            }
-          });
-        }
-      });
-
-      log(`Selected projects: ${Object.keys(selectedProjects).join(', ')}...`);
-    }
+    log(`Selected projects: ${Object.keys(selectedProjects).join(', ')}...`);
   } else {
     selectedProjects = copy(config.projects);
     log(`Selected all projects: ${Object.keys(selectedProjects).join(', ')}...`);
