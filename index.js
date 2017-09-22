@@ -97,16 +97,16 @@ let selectedProjects = {};
       const projectSetupGroups = [];
       Object.keys(config.projects).forEach((projectName) => {
         const project = config.projects[projectName];
-        if (project.dependsOnProjects) {
-          project.dependsOnProjects.forEach((dependentProjectName) => {
+        if (project.triggeredByProjects) {
+          project.triggeredByProjects.forEach((dependentProjectName) => {
             if (!config.projects[dependentProjectName]) {
               throw new Error(`Couldn't find project "${dependentProjectName}" that "${projectName}" depends on`);
             }
-            if (config.projects[dependentProjectName].dependsOnProjects) {
+            if (config.projects[dependentProjectName].triggeredByProjects) {
               throw new Error(`"${projectName}" depends on "${dependentProjectName}", which itself depends on other selectedProjects, cannot do that`);
             }
           });
-          projectSetupGroups.push(project.dependsOnProjects.concat([projectName]));
+          projectSetupGroups.push(project.triggeredByProjects.concat([projectName]));
         }
       });
       log(`All project groups for setup: ${projectSetupGroups.map((group) => group.join('+')).join(', ')}...`);
@@ -128,8 +128,8 @@ let selectedProjects = {};
       // If a project is selected, make sure projects that depend on it are selected.
       Object.keys(config.projects).forEach((projectName) => {
         const project = config.projects[projectName];
-        if (project.dependsOnProjects) {
-          project.dependsOnProjects.forEach((dependentProjectName) => {
+        if (project.triggeredByProjects) {
+          project.triggeredByProjects.forEach((dependentProjectName) => {
             if (selectedProjects[dependentProjectName]) {
               log(`Using project "${dependentProjectName}", so also using "${projectName}"...`);
               selectedProjects[dependentProjectName] = config.projects[dependentProjectName];
