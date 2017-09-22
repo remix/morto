@@ -88,7 +88,58 @@ let projects = {};
       }
     }
 
-    log(`Using projects: ${Object.keys(projects).join(', ')}...`);
+    if (command === 'setup') {
+      // Find all projects that should be set up together.
+      // E.g. if you have "A", "B", and "A-B-integration", then if any of those
+      // three changes, then all three should be set up. If you also have a
+      // "C" and a "B-C-integration", that forms another group of three (if "C"
+      // changes then "A" does not to be set up).
+      const projectSetupGroups = [];
+      Object.keys(config.projects).forEach((projectName) => {
+        const project = config.projects[projectName];
+        if (project.dependsOnProjects) {
+          project.dependsOnProjects.forEach((dependentProjectName) => {
+            if (!config.projects[dependentProjectName]) {
+              throw new Error(`Couldn't find project "${dependentProjectName}" that "${projectName}" depends on`);
+            }
+            if (config.projects[dependentProjectName].dependsOnProjects) {
+              throw new Error(`"${projectName}" depends on "${dependentProjectName}", which itself depends on other projects, cannot do that`);
+            }
+          });
+          projectSetupGroups.push(project.dependsOnProjects.concat([projectName]));
+        }
+      });
+      log(`All project groups for setup: ${projectSetupGroups.map((group) => group.join('+')).join(', ')}...`);
+
+      // If a project is used, make sure its whole group is used.
+      Object.keys(projects).forEach((projectName) => {
+        projectSetupGroups.forEach((group) => {
+          if (group.includes(projectName)) {
+            log(`Using project "${projectName}", so for setup using all of ${group.join('+')}...`);
+            group.forEach((groupProjectName) => {
+              projects[groupProjectName] = config.projects[groupProjectName];
+            });
+          }
+        });
+      });
+
+      log(`Using projects (just for setup): ${Object.keys(projects).join(', ')}...`);
+    } else {
+      // If a project is used, make sure projects that depend on it are used.
+      Object.keys(config.projects).forEach((projectName) => {
+        const project = config.projects[projectName];
+        if (project.dependsOnProjects) {
+          project.dependsOnProjects.forEach((dependentProjectName) => {
+            if (projects[dependentProjectName]) {
+              log(`Using project "${dependentProjectName}", so also using "${projectName}"...`);
+              projects[dependentProjectName] = config.projects[dependentProjectName];
+            }
+          });
+        }
+      });
+
+      log(`Using projects: ${Object.keys(projects).join(', ')}...`);
+    }
   } else {
     projects = copy(config.projects);
     log(`Using all projects: ${Object.keys(projects).join(', ')}...`);
