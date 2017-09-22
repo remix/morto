@@ -33,16 +33,16 @@ const config = require(path.join(process.cwd(), '.morto.js'));
 // 2. When a PR is detected, we only run projects of which the project.subDirectory has changed,
 //    and we always keep projects with project.alwaysRun set to true.
 // 3. Otherwise, we run all projects.
-let projects = {};
+let selectedProjects = {};
 {
   if (options.onlyProject && options.onlyProject.length > 0) {
     // Iterate over config.projects to guarantee order.
     Object.keys(config.projects).forEach((projectName) => {
       if (options.onlyProject.includes(projectName)) {
-        projects[projectName] = config.projects[projectName];
+        selectedProjects[projectName] = config.projects[projectName];
       }
     });
-    log(`--onlyProject used, running for projects: ${Object.keys(projects).join(', ')}...`);
+    log(`--onlyProject used, running for projects: ${Object.keys(selectedProjects).join(', ')}...`);
   } else if (process.env.CI_PULL_REQUEST) {
     const splitPRUrl = process.env.CI_PULL_REQUEST.split('/');
     const prNumber = parseInt(splitPRUrl[splitPRUrl.length - 1], 10);
@@ -65,7 +65,7 @@ let projects = {};
       const project = config.projects[projectName];
 
       if (project.alwaysRun) {
-        projects[projectName] = project;
+        selectedProjects[projectName] = project;
       } else {
         if (projectNamesBySubdirectory[project.subDirectory]) {
           throw new Error(`Cannot have multiple projects with same subDirectory: "${project.subDirectory}"`);
@@ -78,12 +78,12 @@ let projects = {};
       if (fileName.length > 0) {
         const projectName = projectNamesBySubdirectory[fileName.split(path.sep)[0]];
         if (!projectName) {
-          projects = copy(config.projects);
+          selectedProjects = copy(config.projects);
           log(`Detected non-project file change in "${fileName}", using all projects...`);
           break;
         }
-        if (!projects[projectName]) {
-          projects[projectName] = config.projects[projectName];
+        if (!selectedProjects[projectName]) {
+          selectedProjects[projectName] = config.projects[projectName];
         }
       }
     }
@@ -103,7 +103,7 @@ let projects = {};
               throw new Error(`Couldn't find project "${dependentProjectName}" that "${projectName}" depends on`);
             }
             if (config.projects[dependentProjectName].dependsOnProjects) {
-              throw new Error(`"${projectName}" depends on "${dependentProjectName}", which itself depends on other projects, cannot do that`);
+              throw new Error(`"${projectName}" depends on "${dependentProjectName}", which itself depends on other selectedProjects, cannot do that`);
             }
           });
           projectSetupGroups.push(project.dependsOnProjects.concat([projectName]));
@@ -111,42 +111,42 @@ let projects = {};
       });
       log(`All project groups for setup: ${projectSetupGroups.map((group) => group.join('+')).join(', ')}...`);
 
-      // If a project is used, make sure its whole group is used.
-      Object.keys(projects).forEach((projectName) => {
+      // If a project is selected, make sure its whole group is selected.
+      Object.keys(selectedProjects).forEach((projectName) => {
         projectSetupGroups.forEach((group) => {
           if (group.includes(projectName)) {
             log(`Using project "${projectName}", so for setup using all of ${group.join('+')}...`);
             group.forEach((groupProjectName) => {
-              projects[groupProjectName] = config.projects[groupProjectName];
+              selectedProjects[groupProjectName] = config.projects[groupProjectName];
             });
           }
         });
       });
 
-      log(`Using projects (just for setup): ${Object.keys(projects).join(', ')}...`);
+      log(`Selected projects (just for setup): ${Object.keys(selectedProjects).join(', ')}...`);
     } else {
-      // If a project is used, make sure projects that depend on it are used.
+      // If a project is selected, make sure projects that depend on it are selected.
       Object.keys(config.projects).forEach((projectName) => {
         const project = config.projects[projectName];
         if (project.dependsOnProjects) {
           project.dependsOnProjects.forEach((dependentProjectName) => {
-            if (projects[dependentProjectName]) {
+            if (selectedProjects[dependentProjectName]) {
               log(`Using project "${dependentProjectName}", so also using "${projectName}"...`);
-              projects[dependentProjectName] = config.projects[dependentProjectName];
+              selectedProjects[dependentProjectName] = config.projects[dependentProjectName];
             }
           });
         }
       });
 
-      log(`Using projects: ${Object.keys(projects).join(', ')}...`);
+      log(`Selected projects: ${Object.keys(selectedProjects).join(', ')}...`);
     }
   } else {
-    projects = copy(config.projects);
-    log(`Using all projects: ${Object.keys(projects).join(', ')}...`);
+    selectedProjects = copy(config.projects);
+    log(`Selected all projects: ${Object.keys(selectedProjects).join(', ')}...`);
   }
 }
 
 // Run the specified command.
-const exitCode = commands[command](projects, options, config);
+const exitCode = commands[command](selectedProjects, options, config);
 
 process.exit(exitCode);
