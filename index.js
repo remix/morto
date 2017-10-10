@@ -8,10 +8,10 @@ const { execSync } = require('child_process');
 const commands = require('./commands');
 const { log, copy } = require('./lib.js');
 
-const { command, argv } = commandLineCommands([null, 'setup', 'test', 'distribute']);
+const { command, argv } = commandLineCommands([null, 'clean', 'setup', 'test', 'distribute']);
 
 if (command === null) {
-  console.log('Valid options are: "setup", "test", "distribute".');
+  console.log('Valid options are: "clean", "setup", "test", "distribute".');
   process.exit(1);
 }
 
